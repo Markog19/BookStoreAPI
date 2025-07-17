@@ -6,10 +6,9 @@ namespace BookStoreAPI.Domain.Entities
     public class Book
     {
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public Guid Id { get; set; }
+        public Guid Id { get; set; } = Guid.NewGuid();
 
-        public string Title { get; set; } = null!;
+        public string? Title { get; set; }
         public decimal Price { get; set; }
 
         public ICollection<BookAuthor> BookAuthors { get; set; } = new List<BookAuthor>();
