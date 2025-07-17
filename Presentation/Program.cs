@@ -1,4 +1,9 @@
+using System;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddDbContext<DBContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("BookStoreDB")));
 
 // Add services to the container.
 

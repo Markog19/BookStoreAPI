@@ -1,6 +1,4 @@
 ﻿using BookStoreAPI.Domain.Entities;
-using System.Collections.Generic;
-using System.Reflection.Emit;
 using Microsoft.EntityFrameworkCore;
 
 public class DBContext : DbContext

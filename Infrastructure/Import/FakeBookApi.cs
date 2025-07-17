@@ -4,7 +4,7 @@ using BookStoreAPI.Infrastructure.Import;
 
 public static class FakeBookApi
 {
-    public static List<Book> GetBooksBatch(int count = 100_000, List<Author> authors, List<Genre> genres)
+    public static List<Book> GetBooksBatch(List<Author> authors, List<Genre> genres, int count = 100_000)
     {
         var books = new List<Book>();
         var random = new Random();
