@@ -1,17 +1,26 @@
 using System;
+using System.Security.Claims;
+using System.Text;
+using BookstoreApi.Presentation;
+using BookStoreAPI.Application.DTOs;
+using BookStoreAPI.Application.Services;
+using BookStoreAPI.Domain.Interfaces;
+using BookStoreAPI.Infrastructure.Data;
+using BookStoreAPI.Infrastructure.Import;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-
+using Microsoft.IdentityModel.Tokens;
+using Quartz;
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddDbContext<DBContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("BookStoreDB")));
 
-// Add services to the container.
+builder.Services.AddServices(builder.Configuration);
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddAuthorization();
 var app = builder.Build();
 app.UseMiddleware<ErrorHandlingMiddleware>();
 // Configure the HTTP request pipeline.
@@ -26,5 +35,6 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
 
 app.Run();
