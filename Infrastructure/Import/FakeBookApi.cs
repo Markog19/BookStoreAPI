@@ -1,10 +1,12 @@
-using System;
+using BookStoreAPI.Application.DTOs;
 using BookStoreAPI.Domain.Entities;
-using BookStoreAPI.Infrastructure.Import;
+using FuzzySharp;
+using Microsoft.Extensions.Options;
+namespace BookStoreAPI.Infrastructure.Import;
 
-public static class FakeBookApi
-{
-    public static List<Book> GetBooksBatch(List<Author> authors, List<Genre> genres, int count = 100_000)
+public class FakeBookApi(IOptions<SeedOptions> seedOptions)
+{ 
+    public List<Book> GetBooksBatch(int count)
     {
         var books = new List<Book>();
         var random = new Random();
@@ -12,19 +14,26 @@ public static class FakeBookApi
         for (int i = 1; i <= count; i++)
         {
             var title = $"{MockDataSources.TitleAdjectives[random.Next(MockDataSources.TitleAdjectives.Length)]} " +
-                        $"{MockDataSources.TitleNouns[random.Next(MockDataSources.TitleNouns.Length)]}";            
+                        $"{MockDataSources.TitleNouns[random.Next(MockDataSources.TitleNouns.Length)]}";
 
-            books.Add(new Book
+            if (!FindMatchingTitle(title,books, seedOptions.Value.FuzzScore))
             {
-                Title = $"{title} #{i}",
-                Price = Math.Round((decimal)(random.NextDouble() * 50 + 5), 2),
-            });
+                books.Add(new Book
+                {
+                    Title = $"{title} #{i}",
+                    Price = Math.Round((decimal)(random.NextDouble() * 50 + 5), 2),
+                }); 
+            }
 
         }
 
         return books;
     }
-    public static List<Author> GetAuthors(List<Book> books)
+    public bool FindMatchingTitle(string importedTitle, IEnumerable<Book> existingBooks, int threshold = 90)
+    {
+        return existingBooks.Any(book => Fuzz.Ratio(importedTitle, book.Title) >= threshold);
+    }
+    public List<Author> GetAuthors(List<Book> books)
     {
         var authors = new List<Author>();
         var random = new Random();
@@ -41,7 +50,7 @@ public static class FakeBookApi
         }
         return authors;
     }
-    public static List<Genre> GetGenres()
+    public List<Genre> GetGenres()
     {
         var genres = new List<Genre>();
 
@@ -54,23 +63,29 @@ public static class FakeBookApi
         }
         return genres;
     }
-    public static List<Review> GetReviews()
+    public List<Review> GetReviews(List<Book> books)
     {
         var reviews = new List<Review>();
         var random = new Random();
-        var numberOfReviews = random.Next(1, 5);
-        for (int i = 0; i < numberOfReviews; i++)
+        var numberOfReviews = random.Next(1, 4);
+        foreach (var book in books)
         {
-            reviews.Add(new Review
+            for (int i = 0; i < numberOfReviews; i++)
             {
-                Rating = random.Next(1,6),
-                Description = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec eu tortor nec eros" +
-                " venenatis facilisis at eu massa. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices " +
-                "posuere cubilia curae; Integer vitae lorem sit amet quam iaculis finibus. Maecenas quis est finibus, " +
-                "pretium lectus a, tincidunt diam. Cras eu neque leo. Phasellus magna dolor, eleifend ac imperdiet nec, " +
-                "accumsan eget lectus. Vestibulum mattis mattis rhoncus. Sed blandit varius libero, ac ultrices orci " 
-            });
+                reviews.Add(new Review
+                {
+                    BookId = book.Id,
+                    Rating = random.Next(1, 6),
+                    Description = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec eu tortor nec eros" +
+                    " venenatis facilisis at eu massa. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices " +
+                    "posuere cubilia curae; Integer vitae lorem sit amet quam iaculis finibus. Maecenas quis est finibus, " +
+                    "pretium lectus a, tincidunt diam. Cras eu neque leo. Phasellus magna dolor, eleifend ac imperdiet nec, " +
+                    "accumsan eget lectus. Vestibulum mattis mattis rhoncus. Sed blandit varius libero, ac ultrices orci "
+                });
+            } 
         }
         return reviews;
     }
+
+    
 }
