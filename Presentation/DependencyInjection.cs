@@ -12,7 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Quartz;
 
-namespace BookstoreApi.Presentation
+namespace BookStoreAPI.Presentation
 {
     public static class DependencyInjection
     {
@@ -25,6 +25,9 @@ namespace BookstoreApi.Presentation
 
             services.AddScoped<IBookService, BookService>();
 
+            services.AddScoped<IUserService, UserService>();
+
+
             services.AddDbContext<DBContext>(options =>
                 options.UseNpgsql(configuration.GetConnectionString("BookStoreDB")));
 
@@ -32,9 +35,17 @@ namespace BookstoreApi.Presentation
                 .GetSection("SeedOptions")
                 .Get<SeedOptions>();
 
+            var authOptions = configuration
+                .GetSection("AuthOptions")
+                .Get<AuthOptions>();
+
             services.Configure<SeedOptions>(
                 configuration.GetSection("SeedOptions"));
-                services.AddQuartz(q =>
+
+            services.Configure<AuthOptions>(
+                configuration.GetSection("AuthOptions"));
+
+            services.AddQuartz(q =>
             {
 
                 var jobKey = new JobKey(seedOptions.JobKey);
@@ -59,9 +70,9 @@ namespace BookstoreApi.Presentation
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
                         RoleClaimType = ClaimTypes.Role,
-                        ValidIssuer = "BookstoreAPI",
-                        ValidAudience = "BookstoreClient",
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration.GetValue<string>("Auth:SecretKey")))
+                        ValidIssuer = authOptions.Issuer,
+                        ValidAudience = authOptions.Audience,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authOptions.SecretKey))
                     };
                 });
 

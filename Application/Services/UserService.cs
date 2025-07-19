@@ -3,16 +3,18 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using BookStoreAPI.Application.Common.Security;
+using BookStoreAPI.Application.DTOs;
 using BookStoreAPI.Domain.Entities;
 using BookStoreAPI.Domain.Interfaces;
 using BookStoreAPI.Infrastructure.Data;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace BookStoreAPI.Application.Services
 {
-    public class UserService(DBContext context) : IUserService
+    public class UserService(DBContext context, IOptions<AuthOptions> authOptions) : IUserService
     {
         public async Task<string> Authenticate(User user)
         {
@@ -26,7 +28,7 @@ namespace BookStoreAPI.Application.Services
                 return null;
             }
             var userRoles = await context.UserRoles
-                .Where(ur => ur.UserId == user.Id)
+                .Where(ur => ur.UserId == fetchedUser.Id)
                 .Include(ur => ur.Role)
                 .Select(ur => ur.Role)
                 .ToListAsync();
@@ -63,12 +65,12 @@ namespace BookStoreAPI.Application.Services
                 claims.Add(new Claim(ClaimTypes.Role, role.Name));
             }
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("test"));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authOptions.Value.SecretKey));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
-                issuer: "test",
-                audience: "test",
+                issuer: authOptions.Value.Issuer,
+                audience: authOptions.Value.Audience,
                 claims: claims,
                 expires: DateTime.UtcNow.AddHours(1),
                 signingCredentials: creds);

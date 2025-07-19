@@ -1,33 +1,84 @@
-﻿using BookStoreAPI.Domain.Entities;
+﻿using BookStoreAPI.Application.DTOs;
+using BookStoreAPI.Domain.Entities;
 using BookStoreAPI.Domain.Interfaces;
+using BookStoreAPI.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace BookStoreAPI.Application.Services
 {
-    public class BookService : IBookService
+    public class BookService(DBContext context) : IBookService
     {
-        public Task DeleteBookAsync(Guid Id)
+        public async Task<int> DeleteBookAsync(Guid Id)
+        {
+            if (!context.Books.Any(e => e.Id == Id))
+            {
+
+                return await Task.FromResult(0);
+            }
+            var fetchedBook = context.Books.FirstOrDefault(e => e.Id == Id);
+            context.Remove(fetchedBook);
+            return await context.SaveChangesAsync();
+        }
+
+        public async Task<IEnumerable<BookDTO>> GetAllBooksAsync()
+        {
+            return await context.Books.
+                Include(b => b.BookAuthors)
+                .Include(b => b.BookGenres)
+                .Include(b => b.Reviews)
+                .AsSplitQuery()
+                .Select(b => new BookDTO
+                {
+                    Title = b.Title,
+                    AuthorNames = b.BookAuthors.Select(a => a.Author.Name).ToList(),
+                    GenreNames = b.BookGenres.Select(g => g.Genre.Name).ToList(),
+                    AverageRating = b.Reviews.Any() ? b.Reviews.Average(r => r.Rating) : 0
+                })
+                .ToListAsync(); 
+        }
+
+        public async Task<BookDTO?> GetBookAsync(Guid Id)
+        {
+            if (!context.Books.Any(e => e.Id == Id))
+            {
+                return null;
+            }
+            return await context.Books.Where(e => e.Id == Id)
+                            .Include(b => b.BookAuthors)
+                            .Include(b => b.BookGenres)
+                            .Include(b => b.Reviews)
+                            .AsSplitQuery()
+                            .Select(b => new BookDTO
+                            {
+                                Title = b.Title,
+                                AuthorNames = b.BookAuthors.Select(a => a.Author.Name).ToList(),
+                                GenreNames = b.BookGenres.Select(g => g.Genre.Name).ToList(),
+                                AverageRating = b.Reviews.Any() ? b.Reviews.Average(r => r.Rating) : 0
+                            })
+                            .FirstOrDefaultAsync();
+        }
+
+        public Task<IEnumerable<BookDTO>> GetTop10Books()
         {
             throw new NotImplementedException();
         }
 
-        public Task<IEnumerable<Book>> GetAllBooksAsync()
+        public async Task<int> PostBookAsync(Book book)
         {
-            throw new NotImplementedException();
+            context.Add(book);
+            return await context.SaveChangesAsync();
         }
 
-        public Task GetBookAsync(Guid Id)
+        public async Task<int> UpdateBookAsync(BookUpdateRequest book)
         {
-            throw new NotImplementedException();
-        }
+            if (!context.Books.Any(e => e.Id == book.Id))
+            {
 
-        public Task PostBookAsync(Book book)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task UpdateBookAsync(Guid id, Book book)
-        {
-            throw new NotImplementedException();
+                return await Task.FromResult(0);
+            }
+            var fetchedBook = context.Books.FirstOrDefault(e => e.Id == book.Id);
+            fetchedBook.Price = book.Price;
+            return await context.SaveChangesAsync();
         }
     }
 }

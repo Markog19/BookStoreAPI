@@ -7,14 +7,15 @@ using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
+namespace BookStoreAPI.Presentation.Controllers;
 [ApiController]
 [Route("api/[controller]")]
-public class LoginController(IUserService userService) : ControllerBase
+public class UsersController(IUserService userService) : ControllerBase
 {
     
 
-    [HttpPost]
-    public async Task<IActionResult> LoginAsync([FromBody] User user )
+    [HttpPost("login")]
+    public async Task<IActionResult> LoginAsync([FromBody] User user)
     {
         var token = await userService.Authenticate(user);
         if(token == null) 
@@ -22,9 +23,9 @@ public class LoginController(IUserService userService) : ControllerBase
             return Unauthorized();
         }
 
-        return Ok(token);
+        return Ok(new { token});
     }
-    [HttpPost]
+    [HttpPost("register")]
     public async Task<IActionResult> RegisterAsync([FromBody] User user)
     {
         if (await userService.Register(user))
