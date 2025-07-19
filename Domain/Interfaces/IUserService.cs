@@ -4,7 +4,9 @@ namespace BookStoreAPI.Domain.Interfaces
 {
     public interface IUserService
     {
-        public Task Login(User user);
-        public Task Register (User user);
+        public Task<string> Authenticate(User user);
+        public Task<bool> Register (User user);
+        public string GenerateJwtToken(string username, List<Role> role);
+
     }
 }
