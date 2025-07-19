@@ -1,19 +1,19 @@
 ﻿using BookStoreAPI.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-
+namespace BookStoreAPI.Infrastructure.Data;
 public class DBContext : DbContext
 {
-    public DbSet<Book> Books => Set<Book>();
-    public DbSet<Author> Authors => Set<Author>();
-    public DbSet<Genre> Genres => Set<Genre>();
-    public DbSet<Review> Reviews => Set<Review>();
-    public DbSet<BookAuthor> BookAuthors => Set<BookAuthor>();
-    public DbSet<BookGenre> BookGenres => Set<BookGenre>();
+    public DbSet<Book> Books { get; set; }
+    public DbSet<Author> Authors { get; set; }
+    public DbSet<Genre> Genres { get; set; }
+    public DbSet<Review> Reviews { get; set; }
+    public DbSet<BookAuthor> BookAuthors { get; set; }
+    public DbSet<BookGenre> BookGenres { get; set; }
 
     public DBContext(DbContextOptions<DBContext> options) : base(options)
     {
     }
-
+    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
