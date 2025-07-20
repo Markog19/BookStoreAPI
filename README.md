@@ -91,7 +91,7 @@ dotnet run
 * Avoids duplicates (case-insensitive, trimmed title match)
 * Mocked API with hardcoded data
 
-> To handle typos in future, fuzzy string matching (e.g., using Levenshtein distance) could be used.
+
 
 ---
 
@@ -103,7 +103,6 @@ dotnet run
 * Swagger (Swashbuckle)
 * Moq (unit testing)
 * xUnit (testing framework)
-* Microsoft.AspNetCore.Mvc.Testing (integration testing)
 * Serilog
 
 ---
@@ -119,7 +118,6 @@ dotnet test
 ### Tests Included
 
 * Unit Test: Service logic 
-* Integration Test: GET `/api/books` using EF Core InMemory and `WebApplicationFactory`
 
 ---
 
