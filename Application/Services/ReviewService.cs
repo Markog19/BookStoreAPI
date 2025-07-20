@@ -9,7 +9,7 @@ namespace BookStoreAPI.Application.Services
     {
         public async Task<IEnumerable<Review>> GetAllAsync()
         {
-            return await context.Reviews.ToListAsync();
+            return await context.Reviews.Include(e => e.Book).ToListAsync();
         }
 
         public async Task<Review?> GetByIdAsync(Guid id)

@@ -27,6 +27,12 @@ namespace BookStoreAPI.Presentation
 
             services.AddScoped<IUserService, UserService>();
 
+            services.AddScoped<IAuthorService, AuthorService>();
+
+            services.AddScoped<IGenreService, GenreService>();
+
+            services.AddScoped<IReviewService, ReviewService>();
+
 
             services.AddDbContext<DBContext>(options =>
                 options.UseNpgsql(configuration.GetConnectionString("BookStoreDB")));

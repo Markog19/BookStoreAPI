@@ -9,7 +9,7 @@ namespace BookStoreAPI.Application.Services
     {
         public async Task<IEnumerable<Genre>> GetAllAsync()
         {
-            return await context.Genres.ToListAsync();
+            return await context.Genres.Include(e => e.BookGenres).ToListAsync();
         }
 
         public async Task<Genre?> GetByIdAsync(Guid id)
@@ -37,7 +37,7 @@ namespace BookStoreAPI.Application.Services
             return true;
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(Guid id)
         {
             var genre = await context.Genres.FindAsync(id);
             if (genre == null)

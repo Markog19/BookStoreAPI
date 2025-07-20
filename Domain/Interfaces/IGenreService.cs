@@ -5,7 +5,7 @@ namespace BookStoreAPI.Domain.Interfaces
     public interface IGenreService
     {
         Task<IEnumerable<Genre>> GetAllAsync();
-        Task<int?> GetByIdAsync(Guid id);
+        Task<Genre?> GetByIdAsync(Guid id);
         Task<int> CreateAsync(Genre genre);
         Task<bool> UpdateAsync(Genre genre);
         Task<bool> DeleteAsync(Guid id);

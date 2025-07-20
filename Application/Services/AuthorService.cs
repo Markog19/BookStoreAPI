@@ -27,7 +27,7 @@ namespace BookStoreAPI.Application.Services
 
         public async Task<IEnumerable<Author>> GetAllAsync()
         {
-            return await context.Authors.ToListAsync();
+            return await context.Authors.Include(e => e.BookAuthors).ToListAsync();
         }
 
         public async Task<Author?> GetByIdAsync(Guid id)
