@@ -1,5 +1,8 @@
-﻿namespace BookStoreAPI.Application.DTOs
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace BookStoreAPI.Application.DTOs
 {
+    [Keyless]
     public class BookDTO
     {
         public string Title { get; set; } = string.Empty;

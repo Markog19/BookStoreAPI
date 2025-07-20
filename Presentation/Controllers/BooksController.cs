@@ -23,6 +23,18 @@ namespace BookStoreAPI.Presentation.Controllers
             }
             return Ok(books);
         }
+        [Authorize(Roles = "Read, ReadWrite")]
+        [HttpGet("top10")]
+        public async Task<IActionResult> GetTop10Async()
+        {
+            var books = await bookService.GetTop10Books();
+            if (!books.Any())
+            {
+                return NotFound(books);
+
+            }
+            return Ok(books);
+        }
 
         [Authorize(Roles = "Read, ReadWrite")]
         [HttpGet("{id}")]

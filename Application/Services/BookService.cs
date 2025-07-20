@@ -1,7 +1,9 @@
-﻿using BookStoreAPI.Application.DTOs;
+﻿using System.Xml.Linq;
+using BookStoreAPI.Application.DTOs;
 using BookStoreAPI.Domain.Entities;
 using BookStoreAPI.Domain.Interfaces;
 using BookStoreAPI.Infrastructure.Data;
+using Humanizer;
 using Microsoft.EntityFrameworkCore;
 
 namespace BookStoreAPI.Application.Services
@@ -22,6 +24,7 @@ namespace BookStoreAPI.Application.Services
 
         public async Task<IEnumerable<BookDTO>> GetAllBooksAsync()
         {
+
             return await context.Books.
                 Include(b => b.BookAuthors)
                 .Include(b => b.BookGenres)
@@ -58,11 +61,66 @@ namespace BookStoreAPI.Application.Services
                             .FirstOrDefaultAsync();
         }
 
-        public Task<IEnumerable<BookDTO>> GetTop10Books()
+        public async Task<IEnumerable<BookDTO>> GetTop10Books()
         {
-            throw new NotImplementedException();
+           FormattableString booksSql= $@"
+    SELECT b.""Title"", b.""Id"", CASE
+        WHEN EXISTS (
+            SELECT 1 FROM ""Reviews"" AS r WHERE b.""Id"" = r.""BookId"") THEN (
+            SELECT AVG(r0.""Rating""::double precision)
+            FROM ""Reviews"" AS r0 WHERE b.""Id"" = r0.""BookId"")
+        ELSE 0.0
+    END AS ""AverageRating""
+    FROM ""Books"" AS b
+    ORDER BY ""AverageRating"" DESC
+    LIMIT 10;
+";
+
+            FormattableString authorSql = $@"
+    SELECT s.""Name"" AS ""AuthorName"", b.""Id"" AS ""BookId""
+    FROM ""Books"" AS b
+    INNER JOIN (
+        SELECT a1.""Name"", b2.""BookId""
+        FROM ""BookAuthors"" AS b2
+        INNER JOIN ""Authors"" AS a1 ON b2.""AuthorId"" = a1.""Id""
+    ) AS s ON b.""Id"" = s.""BookId""
+    ORDER BY b.""Id"";
+";
+
+            FormattableString genreSql = $@"
+    SELECT s0.""Name"" AS ""GenreName"", b.""Id"" AS ""BookId""
+    FROM ""Books"" AS b
+    INNER JOIN (
+        SELECT g0.""Name"", b4.""BookId""
+        FROM ""BookGenres"" AS b4
+        INNER JOIN ""Genres"" AS g0 ON b4.""GenreId"" = g0.""Id""
+    ) AS s0 ON b.""Id"" = s0.""BookId""
+    ORDER BY b.""Id"";
+";
+            var books = await context.Database.SqlQuery<RawBookDTO>(booksSql).ToListAsync();
+            var authors = await context.Database.SqlQuery<RawAuthorDTO>(authorSql).ToListAsync();
+            var genres = await context.Database.SqlQuery<RawGenreDTO>(genreSql).ToListAsync();
+
+            var result = books.Select(book => new BookDTO
+            {
+                Title = book.Title,
+                AverageRating = book.AverageRating,
+                AuthorNames = authors
+                    .Where(a => a.BookId == book.Id)
+                    .Select(a => a.AuthorName)
+                    .Distinct()
+                    .ToList(),
+                GenreNames = genres
+                    .Where(g => g.BookId == book.Id)
+                    .Select(g => g.GenreName)
+                    .Distinct()
+                    .ToList()
+            }).ToList();
+
+            return result;
         }
 
+        
         public async Task<int> PostBookAsync(Book book)
         {
             context.Add(book);
